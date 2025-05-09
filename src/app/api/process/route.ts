@@ -26,13 +26,15 @@ export async function POST(request: Request) {
     const buffer = Buffer.from(arrayBuffer);
     console.log("PDF Buffer:", buffer);
 
+    // Convert buffer to base64
+    const base64Source = buffer.toString('base64');
+
     const initialResponse = await client
         .path("/documentModels/{modelId}:analyze", "prebuilt-layout")
         .post({
             contentType: "application/json",
             body: {
-                urlSource:
-                    "https://raw.githubusercontent.com/Azure/azure-sdk-for-js/6704eff082aaaf2d97c1371a28461f512f8d748a/sdk/formrecognizer/ai-form-recognizer/assets/forms/Invoice_1.pdf",
+                base64Source,
             },
             queryParameters: { locale: "en-IN" },
         });
@@ -45,7 +47,7 @@ export async function POST(request: Request) {
     const analyzeResult = ((await poller.pollUntilDone()).body as AnalyzeOperationOutput).analyzeResult;
     console.log(analyzeResult);
 
-    return new Response(JSON.stringify({ message: "File received!" }), {
+    return new Response(JSON.stringify({ result: analyzeResult }), {
         status: 200,
         headers: { "Content-Type": "application/json" },
     });
