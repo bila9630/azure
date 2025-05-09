@@ -1,0 +1,10 @@
+import { atom } from 'jotai';
+import { atomWithStorage } from 'jotai/utils';
+
+interface PDFData {
+    pdfUrl: string;
+    analysisData: any;
+}
+
+// Use atomWithStorage to persist the state
+export const pdfDataAtom = atomWithStorage<PDFData | null>('pdfData', null); 

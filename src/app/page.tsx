@@ -5,8 +5,13 @@ import FileDropzone from "@/components/file-dropzone";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { X, FileText } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useSetAtom } from 'jotai';
+import { pdfDataAtom } from '@/store/pdf-atoms';
 
 export default function Home() {
+  const router = useRouter();
+  const setPdfData = useSetAtom(pdfDataAtom);
   const [files, setFiles] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
   const removeFile = (file: File) => setFiles([]);
@@ -21,10 +26,23 @@ export default function Home() {
       body: formData,
     });
     const data = await response.json();
-    setLoading(false);
     console.log(data);
-  }
+    setLoading(false);
 
+    // Create a URL for the PDF file from the uploaded file
+    const pdfBlob = new Blob([files[0]], { type: 'application/pdf' });
+    const pdfUrl = URL.createObjectURL(pdfBlob);
+    console.log(pdfUrl);
+
+    // Set the PDF data in Jotai atom
+    setPdfData({
+      pdfUrl,
+      analysisData: data
+    });
+
+    // Navigate to viewer page
+    router.push('/viewer');
+  }
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-background">
