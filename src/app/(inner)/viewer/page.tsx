@@ -5,7 +5,6 @@ import { useAtom } from 'jotai';
 import { useRouter } from "next/navigation";
 import { useEffect } from 'react';
 import { pdfDataAtom } from '@/store/pdf-atoms';
-import { Button } from "@/components/ui/button";
 
 export default function PDFViewerPage() {
     const router = useRouter();
@@ -14,14 +13,9 @@ export default function PDFViewerPage() {
     useEffect(() => {
         // If no PDF data is available, redirect to home
         if (!pdfData) {
-            router.push('/');
+            router.push('/start');
         }
     }, [pdfData, router]);
-
-    const handleBack = () => {
-        setPdfData(null); // Clear the data
-        router.push('/');
-    };
 
     if (!pdfData) {
         return (
@@ -33,12 +27,6 @@ export default function PDFViewerPage() {
 
     return (
         <div className="container mx-auto py-8">
-            <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-semibold">Document Viewer</h1>
-                <Button variant="outline" onClick={handleBack}>
-                    Back to Upload
-                </Button>
-            </div>
             <div className="w-full">
                 <PDFViewer pdfUrl={pdfData.pdfUrl} />
             </div>
