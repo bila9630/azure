@@ -9,6 +9,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ChevronsUpDown } from "lucide-react";
 import React from "react";
+import { parse } from 'js2xmlparser';
 
 // Helper to extract the list data safely
 function extractListData(analysisData: any) {
@@ -91,6 +92,28 @@ export function PdfDataList({ analysisData, openRow, setOpenRow }: PdfDataListPr
         setOpenRow(null);
     };
 
+
+    const handleXMLExport = () => {
+        console.log('Export XML...');
+        const items = extractListData(analysisData);
+
+        const values = items.map(item => {
+            const obj = item.valueObject;
+            return {
+                commission: obj.commission?.valueString || null,
+                name: obj.name?.valueString || null,
+                text: obj.text?.valueString || null,
+                quantity: obj.quantity?.valueString || null,
+                quantityUnit: obj.quantityUnit?.valueString || null
+            };
+        });
+        const xmlString = parse('order', { item: values });
+        const blob = new Blob([xmlString], { type: 'application/xml' });
+
+        const url = URL.createObjectURL(blob);
+        window.open(url, '_blank');
+    };
+
     const handleDelete = (idx: number) => {
         setRows((prev: any[]) =>
             prev.map((row, i) =>
@@ -109,9 +132,12 @@ export function PdfDataList({ analysisData, openRow, setOpenRow }: PdfDataListPr
     return (
         <div className="flex flex-col gap-4">
             <h3 className="text-sm font-semibold text-muted-foreground mb-2 pl-1">Extracted Informations</h3>
-            <div className="flex gap-2 mb-2 pl-1">
-                <Button size="sm" variant={filter === 'accepted' ? 'default' : 'outline'} onClick={() => setFilter('accepted')}>Accepted</Button>
-                <Button size="sm" variant={filter === 'deleted' ? 'default' : 'outline'} onClick={() => setFilter('deleted')}>Deleted</Button>
+            <div className="flex justify-between items-center mb-2 pl-1">
+                <div className="flex gap-2">
+                    <Button size="sm" variant={filter === 'accepted' ? 'default' : 'outline'} onClick={() => setFilter('accepted')}>Accepted</Button>
+                    <Button size="sm" variant={filter === 'deleted' ? 'default' : 'outline'} onClick={() => setFilter('deleted')}>Deleted</Button>
+                </div>
+                <Button size="sm" className="ml-auto" onClick={() => handleXMLExport()}>XML Export</Button>
             </div>
             {filteredRows.length === 0 ? (
                 <div className="text-center text-muted-foreground">No data found</div>
