@@ -85,7 +85,7 @@ export default function Home() {
         )}
 
         <Button className="mt-2 px-8 py-2 text-base" onClick={handleClick} disabled={loading}>
-          {loading ? "Loading..." : "Call api endpoint"}
+          {loading ? "Loading..." : "Analyze"}
         </Button>
       </div>
     </div>

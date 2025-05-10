@@ -123,12 +123,6 @@ export default function PDFViewer({
                 </div>
             )}
 
-            <button
-                className="mt-4 px-4 py-2 bg-gray-700 text-white rounded"
-                onClick={() => console.log('pageSize:', pageSize)}
-            >
-                Log pageSize
-            </button>
         </div>
     );
 } 

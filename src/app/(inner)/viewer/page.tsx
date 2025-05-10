@@ -84,7 +84,7 @@ export default function PDFViewerPage() {
     return (
         <div className="container mx-auto py-8">
             <div className="flex justify-between items-center mb-8 px-4 lg:px-8">
-                <h2 className="text-xl font-semibold">Analysis Results</h2>
+                <h2 className="text-xl font-semibold">Analyzed Results</h2>
                 <button className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90">
                     Next
                 </button>
