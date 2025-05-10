@@ -14,7 +14,8 @@ import React from "react";
 function extractListData(analysisData: any) {
     const valueArray = analysisData?.documents?.[0]?.fields?.data?.valueArray;
     if (!Array.isArray(valueArray)) return [];
-    return valueArray;
+    // Add status: 'accepted' to each row
+    return valueArray.map((row: any) => ({ ...row, status: 'accepted' }));
 }
 
 function getConfidenceClass(confidence: number) {
@@ -23,10 +24,17 @@ function getConfidenceClass(confidence: number) {
     return "bg-yellow-400 text-black";
 }
 
+function getConfidenceTextClass(confidence: number) {
+    if (confidence >= 0.9) return "text-green-700";
+    if (confidence < 0.3) return "text-red-700";
+    return "text-yellow-700";
+}
+
 export function PdfDataList({ analysisData }: { analysisData: any }) {
     const [rows, setRows] = React.useState(() => extractListData(analysisData));
     const [openRow, setOpenRow] = React.useState<number | null>(null);
     const [editValues, setEditValues] = React.useState<any>({});
+    const [filter, setFilter] = React.useState<'accepted' | 'deleted'>('accepted');
 
     React.useEffect(() => {
         setRows(extractListData(analysisData));
@@ -70,6 +78,7 @@ export function PdfDataList({ analysisData }: { analysisData: any }) {
                             quantityUnit: { ...row.valueObject.quantityUnit, valueString: editValues[idx].quantityUnit },
                             commission: { ...row.valueObject.commission, valueString: editValues[idx].commission },
                         },
+                        status: 'accepted',
                     }
                     : row
             )
@@ -77,107 +86,161 @@ export function PdfDataList({ analysisData }: { analysisData: any }) {
         setOpenRow(null);
     };
 
-    const handleDecline = (idx: number) => {
-        setEditValues((prev: any) => ({
-            ...prev,
-            [idx]: undefined,
-        }));
+    const handleDelete = (idx: number) => {
+        setRows((prev: any[]) =>
+            prev.map((row, i) =>
+                i === idx
+                    ? { ...row, status: 'deleted' }
+                    : row
+            )
+        );
         setOpenRow(null);
     };
 
     if (rows.length === 0) {
         return <div className="text-center text-muted-foreground">No data found</div>;
     }
+    const filteredRows = rows.filter(row => row.status === filter);
     return (
         <div className="flex flex-col gap-4">
             <h3 className="text-sm font-semibold text-muted-foreground mb-2 pl-1">Extracted Informations</h3>
-            {rows.map((row: any, idx: number) => {
-                const confidence = typeof row.confidence === 'number' ? row.confidence : null;
-                const percent = confidence !== null ? Math.round(confidence * 100) : null;
-                const badgeClass = confidence !== null ? getConfidenceClass(confidence) : "";
-                const isOpen = openRow === idx;
-                const values = editValues[idx] || {
-                    name: row.valueObject?.name?.valueString || "",
-                    text: row.valueObject?.text?.valueString || "",
-                    quantity: row.valueObject?.quantity?.valueString || "",
-                    quantityUnit: row.valueObject?.quantityUnit?.valueString || "",
-                    commission: row.valueObject?.commission?.valueString || "",
-                };
-                return (
-                    <Collapsible key={idx} open={isOpen} onOpenChange={open => open ? handleOpenRow(idx) : setOpenRow(null)}>
-                        <Card className="p-4 bg-card border rounded-lg shadow flex flex-col gap-2">
-                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                                <div className="font-medium text-lg truncate">
-                                    {row.valueObject?.name?.valueString || "-"}
+            <div className="flex gap-2 mb-2 pl-1">
+                <Button size="sm" variant={filter === 'accepted' ? 'default' : 'outline'} onClick={() => setFilter('accepted')}>Accepted</Button>
+                <Button size="sm" variant={filter === 'deleted' ? 'default' : 'outline'} onClick={() => setFilter('deleted')}>Deleted</Button>
+            </div>
+            {filteredRows.length === 0 ? (
+                <div className="text-center text-muted-foreground">No data found</div>
+            ) : (
+                filteredRows.map((row: any, idx: number) => {
+                    // Find the real index in the rows array
+                    const realIdx = rows.findIndex(r => r === row);
+                    const confidence = typeof row.confidence === 'number' ? row.confidence : null;
+                    const percent = confidence !== null ? Math.round(confidence * 100) : null;
+                    const badgeClass = confidence !== null ? getConfidenceClass(confidence) : "";
+                    const isOpen = openRow === realIdx;
+                    const values = editValues[realIdx] || {
+                        name: row.valueObject?.name?.valueString || "",
+                        text: row.valueObject?.text?.valueString || "",
+                        quantity: row.valueObject?.quantity?.valueString || "",
+                        quantityUnit: row.valueObject?.quantityUnit?.valueString || "",
+                        commission: row.valueObject?.commission?.valueString || "",
+                    };
+                    return (
+                        <Collapsible key={realIdx} open={isOpen} onOpenChange={open => open ? handleOpenRow(realIdx) : setOpenRow(null)}>
+                            <Card className="p-4 bg-card border rounded-lg shadow flex flex-col gap-2">
+                                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                                    <div className="font-medium text-lg truncate">
+                                        {row.valueObject?.name?.valueString || "-"}
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        {percent !== null ? (
+                                            <Badge className={badgeClass}>{percent}%</Badge>
+                                        ) : "-"}
+                                        <CollapsibleTrigger asChild>
+                                            <Button variant="ghost" size="sm">
+                                                <ChevronsUpDown className="h-4 w-4" />
+                                                <span className="sr-only">Toggle details</span>
+                                            </Button>
+                                        </CollapsibleTrigger>
+                                    </div>
                                 </div>
-                                <div className="flex items-center gap-2">
-                                    {percent !== null ? (
-                                        <Badge className={badgeClass}>{percent}%</Badge>
-                                    ) : "-"}
-                                    <CollapsibleTrigger asChild>
-                                        <Button variant="ghost" size="sm">
-                                            <ChevronsUpDown className="h-4 w-4" />
-                                            <span className="sr-only">Toggle details</span>
+                                <CollapsibleContent className="mt-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div className="flex items-center gap-2">
+                                            <div className="flex-1">
+                                                <label className="block text-xs mb-1 text-muted-foreground">
+                                                    Name{row.valueObject?.name?.confidence !== undefined && (
+                                                        <span className={"ml-1 " + getConfidenceTextClass(row.valueObject.name.confidence)}>
+                                                            ({Math.round((row.valueObject.name.confidence || 0) * 100)}%)
+                                                        </span>
+                                                    )}
+                                                </label>
+                                                <Input
+                                                    value={values.name}
+                                                    onChange={e => handleInputChange(realIdx, 'name', e.target.value)}
+                                                    className="w-full"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <div className="flex-1">
+                                                <label className="block text-xs mb-1 text-muted-foreground">
+                                                    Text{row.valueObject?.text?.confidence !== undefined && (
+                                                        <span className={"ml-1 " + getConfidenceTextClass(row.valueObject.text.confidence)}>
+                                                            ({Math.round((row.valueObject.text.confidence || 0) * 100)}%)
+                                                        </span>
+                                                    )}
+                                                </label>
+                                                <Input
+                                                    value={values.text}
+                                                    onChange={e => handleInputChange(realIdx, 'text', e.target.value)}
+                                                    className="w-full"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <div className="flex-1">
+                                                <label className="block text-xs mb-1 text-muted-foreground">
+                                                    Quantity{row.valueObject?.quantity?.confidence !== undefined && (
+                                                        <span className={"ml-1 " + getConfidenceTextClass(row.valueObject.quantity.confidence)}>
+                                                            ({Math.round((row.valueObject.quantity.confidence || 0) * 100)}%)
+                                                        </span>
+                                                    )}
+                                                </label>
+                                                <Input
+                                                    value={values.quantity}
+                                                    onChange={e => handleInputChange(realIdx, 'quantity', e.target.value)}
+                                                    className="w-full"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <div className="flex-1">
+                                                <label className="block text-xs mb-1 text-muted-foreground">
+                                                    Quantity Unit{row.valueObject?.quantityUnit?.confidence !== undefined && (
+                                                        <span className={"ml-1 " + getConfidenceTextClass(row.valueObject.quantityUnit.confidence)}>
+                                                            ({Math.round((row.valueObject.quantityUnit.confidence || 0) * 100)}%)
+                                                        </span>
+                                                    )}
+                                                </label>
+                                                <Input
+                                                    value={values.quantityUnit}
+                                                    onChange={e => handleInputChange(realIdx, 'quantityUnit', e.target.value)}
+                                                    className="w-full"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-2 sm:col-span-2">
+                                            <div className="flex-1">
+                                                <label className="block text-xs mb-1 text-muted-foreground">
+                                                    Commission{row.valueObject?.commission?.confidence !== undefined && (
+                                                        <span className={"ml-1 " + getConfidenceTextClass(row.valueObject.commission.confidence)}>
+                                                            ({Math.round((row.valueObject.commission.confidence || 0) * 100)}%)
+                                                        </span>
+                                                    )}
+                                                </label>
+                                                <Input
+                                                    value={values.commission}
+                                                    onChange={e => handleInputChange(realIdx, 'commission', e.target.value)}
+                                                    className="w-full"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-2 justify-end mt-4">
+                                        <Button size="sm" variant="destructive" onClick={() => handleDelete(realIdx)}>
+                                            Delete
                                         </Button>
-                                    </CollapsibleTrigger>
-                                </div>
-                            </div>
-                            <CollapsibleContent className="mt-4">
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-xs font-semibold mb-1">Name</label>
-                                        <Input
-                                            value={values.name}
-                                            onChange={e => handleInputChange(idx, 'name', e.target.value)}
-                                            className="w-full"
-                                        />
+                                        <Button size="sm" className="bg-green-600 text-white hover:bg-green-700" onClick={() => handleAccept(realIdx)}>
+                                            Save
+                                        </Button>
                                     </div>
-                                    <div>
-                                        <label className="block text-xs font-semibold mb-1">Text</label>
-                                        <Input
-                                            value={values.text}
-                                            onChange={e => handleInputChange(idx, 'text', e.target.value)}
-                                            className="w-full"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-semibold mb-1">Quantity</label>
-                                        <Input
-                                            value={values.quantity}
-                                            onChange={e => handleInputChange(idx, 'quantity', e.target.value)}
-                                            className="w-full"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-semibold mb-1">Quantity Unit</label>
-                                        <Input
-                                            value={values.quantityUnit}
-                                            onChange={e => handleInputChange(idx, 'quantityUnit', e.target.value)}
-                                            className="w-full"
-                                        />
-                                    </div>
-                                    <div className="sm:col-span-2">
-                                        <label className="block text-xs font-semibold mb-1">Commission</label>
-                                        <Input
-                                            value={values.commission}
-                                            onChange={e => handleInputChange(idx, 'commission', e.target.value)}
-                                            className="w-full"
-                                        />
-                                    </div>
-                                </div>
-                                <div className="flex gap-2 justify-end mt-4">
-                                    <Button size="sm" variant="destructive" onClick={() => handleDecline(idx)}>
-                                        Delete
-                                    </Button>
-                                    <Button size="sm" className="bg-green-600 text-white hover:bg-green-700" onClick={() => handleAccept(idx)}>
-                                        Save
-                                    </Button>
-                                </div>
-                            </CollapsibleContent>
-                        </Card>
-                    </Collapsible>
-                );
-            })}
+                                </CollapsibleContent>
+                            </Card>
+                        </Collapsible>
+                    );
+                })
+            )}
         </div>
     );
 } 

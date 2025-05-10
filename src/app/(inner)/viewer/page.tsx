@@ -5,6 +5,7 @@ import { useAtom } from 'jotai';
 import { useRouter } from "next/navigation";
 import { useEffect } from 'react';
 import { pdfDataAtom } from '@/store/pdf-atoms';
+import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "@/components/ui/table";
 import { PdfDataList } from "@/components/PdfDataList";
 
 export default function PDFViewerPage() {
