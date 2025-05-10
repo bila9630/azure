@@ -33,20 +33,15 @@ export default function PDFViewer({
     visibleBoxes,
     showControls = true,
     className = '',
-    pageWidthInches = 8.5,
-    pageHeightInches = 11
+    pageWidthInches = 8.2639,
+    pageHeightInches = 11.6806
 }: PDFViewerProps) {
     const [numPages, setNumPages] = useState<number>();
     const [pageNumber, setPageNumber] = useState<number>(1);
-    const pageRef = useRef<HTMLDivElement>(null);
-    const [pageSize, setPageSize] = useState<{ width: number, height: number }>({ width: 0, height: 0 });
-
-    useEffect(() => {
-        if (pageRef.current) {
-            const rect = pageRef.current.getBoundingClientRect();
-            setPageSize({ width: rect.width, height: rect.height });
-        }
-    }, [pageNumber]);
+    const FIXED_PDF_WIDTH = 500; // px (smaller display)
+    const aspectRatio = pageHeightInches / pageWidthInches;
+    const renderedHeight = FIXED_PDF_WIDTH * aspectRatio;
+    const pageSize = { width: FIXED_PDF_WIDTH, height: renderedHeight };
 
     function onDocumentLoadSuccess({ numPages }: { numPages: number }): void {
         setNumPages(numPages);
@@ -54,26 +49,25 @@ export default function PDFViewer({
 
     return (
         <div className={`flex flex-col items-center ${className}`}>
-            <div className="relative">
-                <div ref={pageRef}>
-                    <Document
-                        file={pdfUrl}
-                        onLoadSuccess={onDocumentLoadSuccess}
-                        className="flex flex-col items-center"
-                        loading={<div className="text-lg">Loading PDF...</div>}
-                        error={<div className="text-lg text-red-500">Error loading PDF!</div>}
-                    >
-                        <Page
-                            pageNumber={pageNumber}
-                            renderTextLayer={true}
-                            renderAnnotationLayer={true}
-                            className="shadow-lg"
-                            loading={<div className="text-lg">Loading page...</div>}
-                        />
-                    </Document>
-                </div>
+            <div className="relative" style={{ width: FIXED_PDF_WIDTH, height: renderedHeight }}>
+                <Document
+                    file={pdfUrl}
+                    onLoadSuccess={onDocumentLoadSuccess}
+                    className="flex flex-col items-center"
+                    loading={<div className="text-lg">Loading PDF...</div>}
+                    error={<div className="text-lg text-red-500">Error loading PDF!</div>}
+                >
+                    <Page
+                        pageNumber={pageNumber}
+                        renderTextLayer={true}
+                        renderAnnotationLayer={true}
+                        className="shadow-lg"
+                        loading={<div className="text-lg">Loading page...</div>}
+                        width={FIXED_PDF_WIDTH}
+                    />
+                </Document>
                 {/* Polygon overlays */}
-                {pageSize.width > 0 && pageSize.height > 0 && boundingBoxes.length > 0 && (
+                {boundingBoxes.length > 0 && (
                     <svg
                         style={{
                             position: 'absolute',
@@ -128,6 +122,13 @@ export default function PDFViewer({
                     </button>
                 </div>
             )}
+
+            <button
+                className="mt-4 px-4 py-2 bg-gray-700 text-white rounded"
+                onClick={() => console.log('pageSize:', pageSize)}
+            >
+                Log pageSize
+            </button>
         </div>
     );
 } 
