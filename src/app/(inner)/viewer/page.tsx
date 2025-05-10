@@ -27,17 +27,24 @@ export default function PDFViewerPage() {
 
     return (
         <div className="container mx-auto py-8">
-            <div className="w-full">
-                <PDFViewer pdfUrl={pdfData.pdfUrl} />
+            <div className="flex justify-between items-center mb-8 px-4 lg:px-8">
+                <h2 className="text-xl font-semibold">Analysis Results</h2>
+                <button className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90">
+                    Next
+                </button>
             </div>
-            {pdfData.analysisData && (
-                <div className="mt-8 p-6 bg-card rounded-lg border">
-                    <h2 className="text-xl font-semibold mb-4">Analysis Results</h2>
-                    <pre className="whitespace-pre-wrap text-sm">
-                        {JSON.stringify(pdfData.analysisData, null, 2)}
-                    </pre>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 px-4 lg:px-8">
+                {pdfData.analysisData && (
+                    <div className="p-6 bg-card rounded-lg border">
+                        <pre className="whitespace-pre-wrap text-sm">
+                            {JSON.stringify(pdfData.analysisData, null, 2)}
+                        </pre>
+                    </div>
+                )}
+                <div className="w-full">
+                    <PDFViewer pdfUrl={pdfData.pdfUrl} />
                 </div>
-            )}
+            </div>
         </div>
     );
 } 
