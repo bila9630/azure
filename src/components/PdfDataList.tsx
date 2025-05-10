@@ -95,19 +95,32 @@ export function PdfDataList({ analysisData, openRow, setOpenRow }: PdfDataListPr
 
     const handleXMLExport = () => {
         console.log('Export XML...');
-        const items = extractListData(analysisData);
+        const inputList = extractListData(analysisData);
 
-        const values = items.map(item => {
+        const items = inputList.map(item => {
             const obj = item.valueObject;
             return {
-                commission: obj.commission?.valueString || null,
-                name: obj.name?.valueString || null,
-                text: obj.text?.valueString || null,
-                quantity: obj.quantity?.valueString || null,
-                quantityUnit: obj.quantityUnit?.valueString || null
+                sku: obj.sku?.valueString || "",
+                name: obj.name?.valueString || "",
+                text: obj.text?.valueString || "",
+                quantity: obj.quantity?.valueString || "",
+                quantityUnit: obj.quantityUnit?.valueString || "",
+                price: obj.price?.valueString || "",
+                priceUnit: obj.priceUnit?.valueString || "€",
+                purchasePrice: obj.purchasePrice?.valueString || "",
+                commission: obj.commission?.valueString || ""
             };
         });
-        const xmlString = parse('order', { item: values });
+
+        const orderData = {
+            customerId: "",
+            commission: "",
+            type: "",
+            shippingConditionId: "",
+            items: items
+        };
+
+        const xmlString = parse('order', orderData);
         const blob = new Blob([xmlString], { type: 'application/xml' });
 
         const url = URL.createObjectURL(blob);
