@@ -15,13 +15,14 @@ export default function TestPDF() {
     const [pageNumber, setPageNumber] = useState<number>(1);
     const pageRef = useRef<HTMLDivElement>(null);
     const [pageSize, setPageSize] = useState<{ width: number, height: number }>({ width: 0, height: 0 });
+    const [showBoundingBox, setShowBoundingBox] = useState(true);
 
     // Example polygon data for a visible area (rectangle near top left)
     const polygonInches = [
-        [1, 1],
-        [3, 1],
-        [3, 2],
-        [1, 2],
+        [0.5, 0.5],
+        [4.5, 0.5],
+        [4.5, 3.5],
+        [0.5, 3.5],
     ];
     const pageWidthInches = 8.5;
     const pageHeightInches = 11;
@@ -62,7 +63,7 @@ export default function TestPDF() {
                             </Document>
                         </div>
                         {/* Polygon overlay for the word 'UNITED' */}
-                        {pageSize.width > 0 && pageSize.height > 0 && (
+                        {pageSize.width > 0 && pageSize.height > 0 && showBoundingBox && (
                             <svg
                                 style={{
                                     position: 'absolute',
@@ -90,6 +91,12 @@ export default function TestPDF() {
 
                     {numPages && (
                         <div className="flex justify-center items-center gap-4 mt-4 w-full">
+                            <button
+                                onClick={() => setShowBoundingBox(prev => !prev)}
+                                className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600"
+                            >
+                                {showBoundingBox ? 'Hide' : 'Show'} Bounding Box
+                            </button>
                             <button
                                 onClick={() => setPageNumber(page => Math.max(1, page - 1))}
                                 disabled={pageNumber <= 1}
