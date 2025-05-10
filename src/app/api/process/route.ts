@@ -32,7 +32,7 @@ export async function POST(request: Request) {
     const base64Source = buffer.toString('base64');
 
     const initialResponse = await client
-        .path("/documentModels/{modelId}:analyze", "osama")
+        .path("/documentModels/{modelId}:analyze", "second")
         .post({
             contentType: "application/json",
             body: {
@@ -49,18 +49,8 @@ export async function POST(request: Request) {
     const analyzeResult = ((await poller.pollUntilDone()).body as AnalyzeOperationOutput).analyzeResult;
     console.log(analyzeResult);
 
-    const result = await generateObject({
-        model: openai("gpt-4o-mini"),
-
-        prompt: "Please come up with 10 definitions for AI agents.",
-        schema: z.object({
-            definitions: z.array(z.string().describe("Use as much jargon as possible. It should be completely incoherent.")),
-        }),
-    });
-
-    console.log(result);
-
-    return new Response(JSON.stringify({ result: analyzeResult }), {
+    // Return only the documents property
+    return new Response(JSON.stringify({ documents: analyzeResult?.documents }), {
         status: 200,
         headers: { "Content-Type": "application/json" },
     });

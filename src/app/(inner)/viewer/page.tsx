@@ -5,6 +5,7 @@ import { useAtom } from 'jotai';
 import { useRouter } from "next/navigation";
 import { useEffect } from 'react';
 import { pdfDataAtom } from '@/store/pdf-atoms';
+import { PdfDataList } from "@/components/PdfDataList";
 
 export default function PDFViewerPage() {
     const router = useRouter();
@@ -15,6 +16,8 @@ export default function PDFViewerPage() {
         if (!pdfData) {
             router.push('/start');
         }
+
+        console.log(pdfData?.analysisData);
     }, [pdfData, router]);
 
     if (!pdfData) {
@@ -34,13 +37,9 @@ export default function PDFViewerPage() {
                 </button>
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 px-4 lg:px-8">
-                {pdfData.analysisData && (
-                    <div className="p-6 bg-card rounded-lg border">
-                        <pre className="whitespace-pre-wrap text-sm">
-                            {JSON.stringify(pdfData.analysisData, null, 2)}
-                        </pre>
-                    </div>
-                )}
+                <div className="p-6 bg-card rounded-lg border">
+                    <PdfDataList analysisData={pdfData.analysisData} />
+                </div>
                 <div className="w-full">
                     <PDFViewer pdfUrl={pdfData.pdfUrl} />
                 </div>
