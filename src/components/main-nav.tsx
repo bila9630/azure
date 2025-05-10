@@ -14,8 +14,7 @@ export function MainNav({
     const pathname = usePathname()
 
     const navItems = [
-        { href: "/start", label: "Start" },
-        { href: "/database", label: "Database" },
+        { href: "/start", label: "Hackstreet Boys" },
     ]
 
     return (
