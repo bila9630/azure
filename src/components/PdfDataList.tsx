@@ -99,9 +99,9 @@ export function PdfDataList({ analysisData, openRow, setOpenRow }: PdfDataListPr
 
     const handleXMLExport = () => {
         console.log('Export XML...');
-        const items = extractListData(analysisData);
+        const inputList = extractListData(analysisData);
 
-        const values = items.map((item, idx) => {
+        const items = inputList.map((item, idx) => {
             const obj = item.valueObject;
             return {
                 commission: obj.commission?.valueString || null,
@@ -112,7 +112,16 @@ export function PdfDataList({ analysisData, openRow, setOpenRow }: PdfDataListPr
                 sku: rows[idx]?.sku || null
             };
         });
-        const xmlString = parse('order', { item: values });
+
+        const orderData = {
+            customerId: "",
+            commission: "",
+            type: "",
+            shippingConditionId: "",
+            items: items
+        };
+
+        const xmlString = parse('order', orderData);
         const blob = new Blob([xmlString], { type: 'application/xml' });
 
         const url = URL.createObjectURL(blob);
