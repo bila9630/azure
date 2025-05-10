@@ -1,6 +1,6 @@
 'use client'
 
-import { PDFViewer } from "@/components/PDFViewer";
+import PDFViewer from "@/components/PDFViewer";
 import { useAtom } from 'jotai';
 import { useRouter } from "next/navigation";
 import { useEffect } from 'react';
@@ -42,7 +42,10 @@ export default function PDFViewerPage() {
                     <PdfDataList analysisData={pdfData.analysisData} />
                 </div>
                 <div className="w-full">
-                    <PDFViewer pdfUrl={pdfData.pdfUrl} />
+                    <PDFViewer
+                        pdfUrl={pdfData.pdfUrl}
+                        visibleBoxes={{}}
+                    />
                 </div>
             </div>
         </div>

@@ -49,9 +49,13 @@ export async function POST(request: Request) {
     const analyzeResult = ((await poller.pollUntilDone()).body as AnalyzeOperationOutput).analyzeResult;
     console.log(analyzeResult);
 
-    // Return only the documents property
-    return new Response(JSON.stringify({ documents: analyzeResult?.documents }), {
+    // Return documents and page dimensions
+    return new Response(JSON.stringify({
+        documents: analyzeResult?.documents,
+        width: analyzeResult?.pages?.[0]?.width,
+        height: analyzeResult?.pages?.[0]?.height
+    }), {
         status: 200,
         headers: { "Content-Type": "application/json" },
     });
-} 
+}

@@ -10,11 +10,32 @@ if (typeof window !== 'undefined') {
     pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 }
 
-interface PDFViewerProps {
-    pdfUrl: string;
+export interface BoundingBox {
+    id: string;
+    coordinates: number[];  // Flat array format: [x1,y1,x2,y2,x3,y3,x4,y4]
+    color?: string;
+    strokeColor?: string;
 }
 
-export function PDFViewer({ pdfUrl }: PDFViewerProps) {
+interface PDFViewerProps {
+    pdfUrl: string;
+    boundingBoxes?: BoundingBox[];
+    visibleBoxes: Record<string, boolean>;
+    showControls?: boolean;
+    className?: string;
+    pageWidthInches?: number;
+    pageHeightInches?: number;
+}
+
+export default function PDFViewer({
+    pdfUrl,
+    boundingBoxes = [],
+    visibleBoxes,
+    showControls = true,
+    className = '',
+    pageWidthInches = 8.5,
+    pageHeightInches = 11
+}: PDFViewerProps) {
     const [numPages, setNumPages] = useState<number>();
     const [pageNumber, setPageNumber] = useState<number>(1);
     const pageRef = useRef<HTMLDivElement>(null);
@@ -32,7 +53,7 @@ export function PDFViewer({ pdfUrl }: PDFViewerProps) {
     }
 
     return (
-        <div className="flex flex-col items-center gap-4">
+        <div className={`flex flex-col items-center ${className}`}>
             <div className="relative">
                 <div ref={pageRef}>
                     <Document
@@ -51,9 +72,43 @@ export function PDFViewer({ pdfUrl }: PDFViewerProps) {
                         />
                     </Document>
                 </div>
+                {/* Polygon overlays */}
+                {pageSize.width > 0 && pageSize.height > 0 && boundingBoxes.length > 0 && (
+                    <svg
+                        style={{
+                            position: 'absolute',
+                            left: 0,
+                            top: 0,
+                            width: pageSize.width,
+                            height: pageSize.height,
+                            pointerEvents: 'none',
+                        }}
+                        width={pageSize.width}
+                        height={pageSize.height}
+                    >
+                        {boundingBoxes.map((box) =>
+                            visibleBoxes[box.id] && (
+                                <polygon
+                                    key={box.id}
+                                    points={box.coordinates.map((coord, index) => {
+                                        const isX = index % 2 === 0;
+                                        const value = isX
+                                            ? (coord / pageWidthInches) * pageSize.width
+                                            : (coord / pageHeightInches) * pageSize.height;
+                                        return value;
+                                    }).join(",")}
+                                    fill={box.color || "rgba(255,0,0,0.2)"}
+                                    stroke={box.strokeColor || "red"}
+                                    strokeWidth={2}
+                                />
+                            )
+                        )}
+                    </svg>
+                )}
             </div>
-            {numPages && (
-                <div className="flex justify-center items-center gap-4 mt-4 w-full">
+
+            {showControls && numPages && (
+                <div className="flex justify-center items-center gap-4 mt-4">
                     <button
                         onClick={() => setPageNumber(page => Math.max(1, page - 1))}
                         disabled={pageNumber <= 1}
@@ -65,8 +120,8 @@ export function PDFViewer({ pdfUrl }: PDFViewerProps) {
                         Page {pageNumber} of {numPages}
                     </p>
                     <button
-                        onClick={() => setPageNumber(page => Math.min(numPages!, page + 1))}
-                        disabled={pageNumber >= (numPages || 1)}
+                        onClick={() => setPageNumber(page => Math.min(numPages, page + 1))}
+                        disabled={pageNumber >= numPages}
                         className="px-4 py-2 bg-blue-500 text-white rounded-md disabled:opacity-50"
                     >
                         Next
