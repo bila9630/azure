@@ -49,15 +49,18 @@ Analyze the input data carefully and select the most appropriate SKU based on th
                 }
             ],
             schema: z.object({
-                sku: z.string().describe("The SKU of a product or service based on the categorization rules. Must be one of: 620001, 670001, 660001, 610001, 680001, 240001, 330001, 450001, 290001, 360001, DL8110016, DL5010008, DL5019990"),
-                explaination: z.string().describe("Provide a detailed explanation of why you chose this SKU based on the input data and categorization rules"),
+                results: z.array(z.object({
+                    id: z.string().describe("The id of the item. Must be a string."),
+                    sku: z.string().describe("The SKU of a product or service based on the categorization rules. Must be one of: 620001, 670001, 660001, 610001, 680001, 240001, 330001, 450001, 290001, 360001, DL8110016, DL5010008, DL5019990"),
+                    explaination: z.string().describe("Provide a detailed explanation of why you chose this SKU based on the input data and categorization rules"),
+                }))
             }),
         });
 
         // Extract only the SKU and explanation from the result
-        const { sku, explaination } = result.object;
+        const results = result.object.results.map(({ id, sku, explaination }) => ({ id, sku, explaination }));
 
-        return new Response(JSON.stringify({ sku, explaination }), {
+        return new Response(JSON.stringify({ results }), {
             status: 200,
             headers: { "Content-Type": "application/json" },
         });
