@@ -37,9 +37,10 @@ interface PdfDataListProps {
     analysisData: any;
     openRow: number | null;
     setOpenRow: React.Dispatch<React.SetStateAction<number | null>>;
+    currentPage: number;
 }
 
-export function PdfDataList({ analysisData, openRow, setOpenRow }: PdfDataListProps) {
+export function PdfDataList({ analysisData, openRow, setOpenRow, currentPage }: PdfDataListProps) {
     const [rows, setRows] = React.useState(() => extractListData(analysisData));
     const [editValues, setEditValues] = React.useState<any>({});
     const [filter, setFilter] = React.useState<'accepted' | 'deleted'>('accepted');
@@ -145,7 +146,15 @@ export function PdfDataList({ analysisData, openRow, setOpenRow }: PdfDataListPr
     if (rows.length === 0) {
         return <div className="text-center text-muted-foreground">No data found</div>;
     }
-    const filteredRows = rows.filter(row => row.status === filter);
+    // Only show rows for the current page
+    const filteredRows = rows.filter(row => {
+        if (row.status !== filter) return false;
+        const valueObj = row.valueObject || {};
+        return Object.values(valueObj).some((field: any) =>
+            Array.isArray(field?.boundingRegions) &&
+            field.boundingRegions.some((region: any) => region.pageNumber === currentPage)
+        );
+    });
     return (
         <div className="flex flex-col gap-4">
             <h3 className="text-sm font-semibold text-muted-foreground mb-2 pl-1">Extracted Informations</h3>

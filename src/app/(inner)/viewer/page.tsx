@@ -13,6 +13,8 @@ export default function PDFViewerPage() {
 
     // openRow state for controlling which item is expanded and which bounding boxes are visible
     const [openRow, setOpenRow] = useState<number | null>(null);
+    const [currentPage, setCurrentPage] = useState<number>(1);
+    const [numPages, setNumPages] = useState<number>(1);
 
     // Extract bounding boxes from analysisData
     type Box = import('@/components/PDFViewer').BoundingBox & { label: string; itemIndex: number };
@@ -88,7 +90,7 @@ export default function PDFViewerPage() {
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 px-4 lg:px-8">
                 <div className="p-6 bg-card rounded-lg border">
-                    <PdfDataList analysisData={pdfData.analysisData} openRow={openRow} setOpenRow={setOpenRow} />
+                    <PdfDataList analysisData={pdfData.analysisData} openRow={openRow} setOpenRow={setOpenRow} currentPage={currentPage} />
                 </div>
                 <div className="w-full">
                     <PDFViewer
@@ -97,7 +99,30 @@ export default function PDFViewerPage() {
                         visibleBoxes={visibleBoxes}
                         pageWidthInches={pdfData.width}
                         pageHeightInches={pdfData.height}
+                        showControls={true}
+                        pageNumber={currentPage}
+                        setPageNumber={setCurrentPage}
+                        onNumPages={setNumPages}
                     />
+                    <div className="flex justify-center items-center gap-4 mt-4">
+                        <button
+                            onClick={() => setCurrentPage(currentPage - 1)}
+                            disabled={currentPage <= 1}
+                            className="px-4 py-2 bg-blue-500 text-white rounded-md disabled:opacity-50"
+                        >
+                            Previous
+                        </button>
+                        <p className="text-lg text-center">
+                            Page {currentPage} of {numPages}
+                        </p>
+                        <button
+                            onClick={() => setCurrentPage(currentPage + 1)}
+                            disabled={currentPage >= numPages}
+                            className="px-4 py-2 bg-blue-500 text-white rounded-md disabled:opacity-50"
+                        >
+                            Next
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

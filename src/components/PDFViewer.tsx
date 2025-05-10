@@ -25,6 +25,9 @@ interface PDFViewerProps {
     className?: string;
     pageWidthInches?: number;
     pageHeightInches?: number;
+    pageNumber?: number;
+    setPageNumber?: (page: number) => void;
+    onNumPages?: (numPages: number) => void;
 }
 
 export default function PDFViewer({
@@ -34,10 +37,15 @@ export default function PDFViewer({
     showControls = true,
     className = '',
     pageWidthInches = 8.2639,
-    pageHeightInches = 11.6806
+    pageHeightInches = 11.6806,
+    pageNumber: controlledPageNumber,
+    setPageNumber: controlledSetPageNumber,
+    onNumPages,
 }: PDFViewerProps) {
     const [numPages, setNumPages] = useState<number>();
-    const [pageNumber, setPageNumber] = useState<number>(1);
+    const [internalPageNumber, setInternalPageNumber] = useState<number>(1);
+    const pageNumber = controlledPageNumber ?? internalPageNumber;
+    const setPageNumber = controlledSetPageNumber ?? setInternalPageNumber;
     const FIXED_PDF_WIDTH = 500; // px (smaller display)
     const aspectRatio = pageHeightInches / pageWidthInches;
     const renderedHeight = FIXED_PDF_WIDTH * aspectRatio;
@@ -45,6 +53,7 @@ export default function PDFViewer({
 
     function onDocumentLoadSuccess({ numPages }: { numPages: number }): void {
         setNumPages(numPages);
+        if (onNumPages) onNumPages(numPages);
     }
 
     return (
@@ -100,29 +109,6 @@ export default function PDFViewer({
                     </svg>
                 )}
             </div>
-
-            {showControls && numPages && (
-                <div className="flex justify-center items-center gap-4 mt-4">
-                    <button
-                        onClick={() => setPageNumber(page => Math.max(1, page - 1))}
-                        disabled={pageNumber <= 1}
-                        className="px-4 py-2 bg-blue-500 text-white rounded-md disabled:opacity-50"
-                    >
-                        Previous
-                    </button>
-                    <p className="text-lg text-center">
-                        Page {pageNumber} of {numPages}
-                    </p>
-                    <button
-                        onClick={() => setPageNumber(page => Math.min(numPages, page + 1))}
-                        disabled={pageNumber >= numPages}
-                        className="px-4 py-2 bg-blue-500 text-white rounded-md disabled:opacity-50"
-                    >
-                        Next
-                    </button>
-                </div>
-            )}
-
         </div>
     );
 } 
