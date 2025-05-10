@@ -2,11 +2,12 @@
 
 import { useState } from 'react';
 import PDFViewer, { BoundingBox } from '@/components/PDFViewer';
+import { v4 as uuidv4 } from 'uuid';
 
 export default function TestPDF() {
     const boundingBoxes: BoundingBox[] = [
         {
-            id: "box1",
+            id: uuidv4(),
             coordinates: [
                 0.5, 0.5,  // x1, y1
                 4.5, 0.5,  // x2, y2
@@ -17,7 +18,7 @@ export default function TestPDF() {
             strokeColor: "red"
         },
         {
-            id: "box2",
+            id: uuidv4(),
             coordinates: [
                 4.5, 7.5,  // x1, y1
                 7.5, 7.5,  // x2, y2
