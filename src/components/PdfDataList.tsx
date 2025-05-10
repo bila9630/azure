@@ -10,6 +10,8 @@ import { Input } from "@/components/ui/input";
 import { ChevronsUpDown } from "lucide-react";
 import React from "react";
 import { parse } from 'js2xmlparser';
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { HelpCircle } from "lucide-react";
 
 // Helper to extract the list data safely
 function extractListData(analysisData: any) {
@@ -65,6 +67,7 @@ export function PdfDataList({ analysisData, openRow, setOpenRow }: PdfDataListPr
                 quantity: rows[idx]?.valueObject?.quantity?.valueString || "",
                 quantityUnit: rows[idx]?.valueObject?.quantityUnit?.valueString || "",
                 commission: rows[idx]?.valueObject?.commission?.valueString || "",
+                sku: rows[idx]?.sku || "",
             },
         }));
         setOpenRow(idx);
@@ -84,6 +87,7 @@ export function PdfDataList({ analysisData, openRow, setOpenRow }: PdfDataListPr
                             quantityUnit: { ...row.valueObject.quantityUnit, valueString: editValues[idx].quantityUnit },
                             commission: { ...row.valueObject.commission, valueString: editValues[idx].commission },
                         },
+                        sku: editValues[idx].sku,
                         status: 'accepted',
                     }
                     : row
@@ -97,14 +101,15 @@ export function PdfDataList({ analysisData, openRow, setOpenRow }: PdfDataListPr
         console.log('Export XML...');
         const items = extractListData(analysisData);
 
-        const values = items.map(item => {
+        const values = items.map((item, idx) => {
             const obj = item.valueObject;
             return {
                 commission: obj.commission?.valueString || null,
                 name: obj.name?.valueString || null,
                 text: obj.text?.valueString || null,
                 quantity: obj.quantity?.valueString || null,
-                quantityUnit: obj.quantityUnit?.valueString || null
+                quantityUnit: obj.quantityUnit?.valueString || null,
+                sku: rows[idx]?.sku || null
             };
         });
         const xmlString = parse('order', { item: values });
@@ -155,6 +160,7 @@ export function PdfDataList({ analysisData, openRow, setOpenRow }: PdfDataListPr
                         quantity: row.valueObject?.quantity?.valueString || "",
                         quantityUnit: row.valueObject?.quantityUnit?.valueString || "",
                         commission: row.valueObject?.commission?.valueString || "",
+                        sku: row.sku || "",
                     };
                     return (
                         <Collapsible key={realIdx} open={isOpen} onOpenChange={open => open ? handleOpenRow(realIdx) : setOpenRow(null)}>
@@ -255,6 +261,30 @@ export function PdfDataList({ analysisData, openRow, setOpenRow }: PdfDataListPr
                                                     onChange={e => handleInputChange(realIdx, 'commission', e.target.value)}
                                                     className="w-full"
                                                 />
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-2 sm:col-span-2">
+                                            <div className="flex-1 flex flex-col gap-1">
+                                                <label className="block text-xs mb-1 text-muted-foreground">
+                                                    SKU
+                                                </label>
+                                                <div className="flex items-center gap-2">
+                                                    <Input
+                                                        value={values.sku}
+                                                        onChange={e => handleInputChange(realIdx, 'sku', e.target.value)}
+                                                        className="w-full"
+                                                    />
+                                                    <Popover>
+                                                        <PopoverTrigger asChild>
+                                                            <Button variant="ghost" size="icon" className="h-6 w-6 p-0 ml-2" tabIndex={0} aria-label="Show SKU explanation">
+                                                                <HelpCircle className="w-4 h-4 text-muted-foreground" />
+                                                            </Button>
+                                                        </PopoverTrigger>
+                                                        <PopoverContent className="max-w-xs text-sm">
+                                                            {row.skuExplanation || 'No explanation available.'}
+                                                        </PopoverContent>
+                                                    </Popover>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
