@@ -11,54 +11,56 @@ export default function PDFViewerPage() {
     const router = useRouter();
     const [pdfData, setPdfData] = useAtom(pdfDataAtom);
 
+    // openRow state for controlling which item is expanded and which bounding boxes are visible
+    const [openRow, setOpenRow] = useState<number | null>(null);
+
     // Extract bounding boxes from analysisData
+    type Box = import('@/components/PDFViewer').BoundingBox & { label: string; itemIndex: number };
     const boundingBoxes = useMemo(() => {
         if (!pdfData?.analysisData?.documents) return [];
         const docs = pdfData.analysisData.documents;
-        const boxes = [];
+        const boxes: Box[] = [];
         let boxCount = 1;
         const fieldsToExtract = ['commission', 'name', 'quantity', 'quantityUnit', 'text'];
         for (const doc of docs) {
             const valueArray = doc.fields?.data?.valueArray || [];
-            for (const item of valueArray) {
-                for (const field of fieldsToExtract) {
+            valueArray.forEach((item: any, itemIndex: number) => {
+                fieldsToExtract.forEach(field => {
                     const fieldObj = item.valueObject?.[field];
                     if (fieldObj?.boundingRegions?.length) {
-                        for (const region of fieldObj.boundingRegions) {
+                        (fieldObj.boundingRegions as any[]).forEach((region: any) => {
                             if (region.polygon && Array.isArray(region.polygon)) {
                                 boxes.push({
                                     id: `box-${boxCount++}`,
                                     coordinates: region.polygon,
-                                    color: 'rgba(255,0,0,0.2)', // Optionally, use different colors per field
-                                    strokeColor: 'red',
+                                    color: 'rgba(59,130,246,0.2)',
+                                    strokeColor: '#3B82F6',
                                     label: field,
+                                    itemIndex,
                                 });
                             }
-                        }
+                        });
                     }
-                }
-            }
+                });
+            });
         }
         return boxes;
     }, [pdfData]);
 
-    // Visibility state for each box
-    const [visibleBoxes, setVisibleBoxes] = useState<Record<string, boolean>>({});
-    useEffect(() => {
-        // Initialize all boxes as visible when boundingBoxes change
-        setVisibleBoxes(boundingBoxes.reduce((acc, box) => ({ ...acc, [box.id]: true }), {}));
-    }, [boundingBoxes]);
+    // Only show boxes for the open row
+    const visibleBoxes = useMemo(() => {
+        const map: Record<string, boolean> = {};
+        if (openRow === null) return map;
+        boundingBoxes.forEach(box => {
+            map[box.id] = box.itemIndex === openRow;
+        });
+        return map;
+    }, [boundingBoxes, openRow]);
 
-    const toggleBox = (boxId: string) => {
-        setVisibleBoxes(prev => ({ ...prev, [boxId]: !prev[boxId] }));
-    };
-
     useEffect(() => {
-        // If no PDF data is available, redirect to home
         if (!pdfData) {
             router.push('/start');
         }
-
         console.log(pdfData?.analysisData);
     }, [pdfData, router]);
 
@@ -79,25 +81,10 @@ export default function PDFViewerPage() {
                 </button>
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 px-4 lg:px-8">
-                {/* <div className="p-6 bg-card rounded-lg border">
-                    <PdfDataList analysisData={pdfData.analysisData} />
-                </div> */}
+                <div className="p-6 bg-card rounded-lg border">
+                    <PdfDataList analysisData={pdfData.analysisData} openRow={openRow} setOpenRow={setOpenRow} />
+                </div>
                 <div className="w-full">
-                    {/* Box toggle controls */}
-                    <div className="flex gap-2 mb-4 justify-center">
-                        {boundingBoxes.map((box, idx) => (
-                            <button
-                                key={box.id}
-                                onClick={() => toggleBox(box.id)}
-                                className={`px-4 py-2 rounded-md ${visibleBoxes[box.id]
-                                    ? 'bg-blue-500 hover:bg-blue-600'
-                                    : 'bg-gray-300 hover:bg-gray-400'
-                                    } text-white`}
-                            >
-                                Box {idx + 1}
-                            </button>
-                        ))}
-                    </div>
                     <PDFViewer
                         pdfUrl={pdfData.pdfUrl}
                         boundingBoxes={boundingBoxes}

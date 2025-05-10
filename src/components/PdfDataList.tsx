@@ -30,9 +30,14 @@ function getConfidenceTextClass(confidence: number) {
     return "text-yellow-700";
 }
 
-export function PdfDataList({ analysisData }: { analysisData: any }) {
+interface PdfDataListProps {
+    analysisData: any;
+    openRow: number | null;
+    setOpenRow: React.Dispatch<React.SetStateAction<number | null>>;
+}
+
+export function PdfDataList({ analysisData, openRow, setOpenRow }: PdfDataListProps) {
     const [rows, setRows] = React.useState(() => extractListData(analysisData));
-    const [openRow, setOpenRow] = React.useState<number | null>(null);
     const [editValues, setEditValues] = React.useState<any>({});
     const [filter, setFilter] = React.useState<'accepted' | 'deleted'>('accepted');
 
