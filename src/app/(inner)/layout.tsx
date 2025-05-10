@@ -2,9 +2,20 @@
 
 import { MainNav } from '@/components/main-nav'
 import { ModeToggle } from '@/components/dark-mode-toggle'
-import React from 'react'
+import React, { useEffect } from 'react'
+import { useSetAtom } from 'jotai'
+import { pdfDataAtom } from '@/store/pdf-atoms'
 
 export default function InnerLayout({ children }: { children: React.ReactNode }) {
+    const setPdfData = useSetAtom(pdfDataAtom)
+
+    useEffect(() => {
+        return () => {
+          // Cleanup sessionStorage when leaving the app
+          sessionStorage.removeItem('pdfViewerData')
+        }
+      }, [])
+
     return (
         <div className="flex flex-col min-h-screen">
             <div className="border-b">

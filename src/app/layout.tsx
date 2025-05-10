@@ -1,6 +1,7 @@
 import { ThemeProvider } from "@/components/theme-provider"
 import type { Metadata } from "next";
 import "./globals.css";
+import { Provider } from "jotai";
 
 export const metadata: Metadata = {
   title: "Hackstreetboys",
@@ -18,14 +19,16 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          {children}
-        </ThemeProvider>
+        <Provider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            {children}
+          </ThemeProvider>
+        </Provider>
       </body>
     </html>
   );
