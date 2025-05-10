@@ -1,6 +1,5 @@
 'use client'
 
-import { ModeToggle } from "@/components/dark-mode-toggle";
 import FileDropzone from "@/components/file-dropzone";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -37,7 +36,9 @@ export default function Home() {
     // Set the PDF data in Jotai atom
     setPdfData({
       pdfUrl,
-      analysisData: data
+      analysisData: data,
+      width: data.width,
+      height: data.height
     });
 
     // Navigate to viewer page
@@ -77,7 +78,7 @@ export default function Home() {
                 Drop your document here or click to browse
               </p>
               <p className="text-xs text-muted-foreground mt-2">
-                Supported formats: PDF, DOC, DOCX
+                Supported formats: PDF
               </p>
             </div>
           </FileDropzone>
@@ -86,7 +87,6 @@ export default function Home() {
         <Button className="mt-2 px-8 py-2 text-base" onClick={handleClick} disabled={loading}>
           {loading ? "Loading..." : "Call api endpoint"}
         </Button>
-        {/* <ModeToggle /> */}
       </div>
     </div>
   )
