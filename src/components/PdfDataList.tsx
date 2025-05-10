@@ -104,12 +104,15 @@ export function PdfDataList({ analysisData, openRow, setOpenRow }: PdfDataListPr
         const items = inputList.map((item, idx) => {
             const obj = item.valueObject;
             return {
-                commission: obj.commission?.valueString || null,
-                name: obj.name?.valueString || null,
-                text: obj.text?.valueString || null,
-                quantity: obj.quantity?.valueString || null,
-                quantityUnit: obj.quantityUnit?.valueString || null,
-                sku: rows[idx]?.sku || null
+                sku: rows[idx]?.sku || "",
+                name: obj.name?.valueString || "",
+                text: obj.text?.valueString || "",
+                quantity: obj.quantity?.valueString || "",
+                quantityUnit: obj.quantityUnit?.valueString || "",
+                price: obj.price?.valueString || "",
+                priceUnit: obj.priceUnit?.valueString || "€",
+                purchasePrice: obj.purchasePrice?.valueString || "",
+                commission: obj.commission?.valueString || ""
             };
         });
 
